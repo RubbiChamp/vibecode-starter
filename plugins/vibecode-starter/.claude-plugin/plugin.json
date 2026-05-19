@@ -1,0 +1,9 @@
+{
+  "name": "vibecode-starter",
+  "version": "0.2.0",
+  "description": "Fundament til vibe coding-projekter — security, scaling og struktur som Claude Code følger fra start til slut",
+  "author": {
+    "name": "Ruben Juncher",
+    "url": "https://rubenjuncher.dk"
+  }
+}
