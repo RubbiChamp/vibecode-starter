@@ -116,6 +116,11 @@ Reglerne er kalibreret til Next.js + Supabase. De er ikke firkantede absolutter 
 - Alle Supabase-tabeller har RLS aktiveret fra dag ét
 - Læs `docs/ARCHITECTURE.md` før større ændringer
 
+## Supabase MCP
+Hvis Supabase MCP er konfigureret i Claude Code (værktøjer som `mcp__supabase__*` er tilgængelige), foretræk altid at bruge MCP'en til at oprette tabeller, anvende migrations, køre queries og inspicere data — i stedet for at generere SQL som brugeren manuelt skal køre i dashboardet.
+
+Hvis MCP ikke er tilgængelig: generér SQL og forklar i 2-3 trin hvor brugeren kopierer det ind (Supabase Dashboard → SQL Editor → Run).
+
 ## Vigtigt — når du scaffolder Next.js-projektet
 
 Når brugeren beder dig om at scaffolde projektet (typisk via `create-next-app`), så vil den auto-generere en `.gitignore`. Tilføj følgende linjer til den `.gitignore` efter scaffolding:
