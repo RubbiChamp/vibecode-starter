@@ -1,28 +1,37 @@
 ---
-description: Starter et nyt vibe coding-projekt. Stiller 3 spørgsmål og opretter projekt-fundamentet med CLAUDE.md, arkitektur-skitse og lokale regelfiler.
+description: Starter et nyt vibe coding-projekt. Læser en PRD hvis den ligger i mappen, ellers stiller 3 spørgsmål. Opretter CLAUDE.md, arkitektur-skitse og lokale regelfiler.
 ---
 
 Du skal nu køre `/start-project`-flowet. Følg disse instruktioner præcist. Hele flowet er på dansk.
 
-## 1. Velkomstbesked
+## 1. Tjek for en PRD først
+
+Inden du gør noget andet, tjek om der ligger en PRD-fil i projektmappen. Tjek disse stier i rækkefølge med `Read`-tool'et (det er fint at få "fil findes ikke"-fejl):
+
+- `PRD.md`
+- `prd.md`
+- `docs/PRD.md`
+- `docs/prd.md`
+
+Hvis du finder en PRD: noter dens sti og indhold. Den er nu **primær kilde** til projekt-konteksten — ikke brugeren. Spring direkte til afsnit 3 nedenfor.
+
+Hvis der IKKE er en PRD: fortsæt til afsnit 2 (velkomstbesked + 3 spørgsmål).
+
+## 2. Velkomstbesked + 3 spørgsmål (kun hvis ingen PRD blev fundet)
+
+### Velkomstbesked
 
 Send følgende besked (eller en meget tæt parafrase):
 
-> Lad os bygge fundamentet til dit projekt ordentligt.
+> Jeg kunne ikke finde en PRD-fil i mappen. Det er helt fint — jeg stiller dig **3 hurtige spørgsmål** så jeg kan bygge fundamentet alligevel.
 >
-> Det her tager 5-10 minutter og sparer dig timevis af bøvl senere. Jeg stiller dig **3 spørgsmål** om hvad du vil bygge. Svar bare så detaljeret du kan — jo mere kontekst jeg får, jo bedre kan jeg hjælpe dig hele vejen igennem projektet.
+> Tip til næste gang: hvis du diskuterer din idé med almindelig Claude først og får en PRD ud af det, så læg den i mappen som `PRD.md` før du kører `/start-project`. Så genererer jeg fundamentet direkte fra PRD'en uden at stille spørgsmål.
 >
-> Bagefter genererer jeg:
-> - En `CLAUDE.md` med projekt-konteksten
-> - En `docs/ARCHITECTURE.md` med datamodel og sikkerhed
-> - Tre regelfiler i `docs/regler/` om sikkerhed, skalering og struktur
-> - Standard projekt-filer (`.gitignore`, `.env.local.example` osv.)
->
-> Klar til at starte? Skriv bare "ja" eller "klar", så går vi i gang.
+> Klar? Skriv "ja" så går vi i gang.
 
 Vent på brugerens bekræftelse før du fortsætter.
 
-## 2. Stil de 3 spørgsmål — ét ad gangen
+### Stil de 3 spørgsmål — ét ad gangen
 
 VIGTIGT: Stil ét spørgsmål ad gangen. Vent på svar mellem hvert. Vis eksempler så det er nemt at svare.
 
@@ -59,11 +68,21 @@ Notér svarene undervejs.
 
 ## 3. Generér filerne
 
-Efter alle 3 svar, opret filerne herunder i projektets root (cwd). Brug `Write`-tool'et til hver fil.
+Du har nu enten:
+- **PRD-vej:** Læst en PRD som primær kilde
+- **Spørgsmåls-vej:** Tre svar fra brugeren
+
+Opret filerne herunder i projektets root (cwd). Brug `Write`-tool'et til hver fil.
+
+Hvor jeg skriver "[Svar 1]", "[Svar 2]", "[Svar 3]" nedenfor:
+- Hvis du har en PRD: udled informationen fra PRD'en
+- Hvis du har svar fra spørgsmål: brug dem direkte
+
+Hvis du har en PRD og noget kritisk er uklart (fx PRD'en nævner intet om login, eller intet om hvilke "ting" der gemmes), stil **maks 1-2 opklarende spørgsmål** før du genererer filerne. Stil ikke spørgsmål om noget PRD'en allerede svarer på.
 
 ### `CLAUDE.md`
 
-Generér ud fra svarene. Hold den under ~100 linjer. Brug denne struktur:
+Generér ud fra konteksten. Hold den under ~120 linjer. Brug denne struktur:
 
 ```markdown
 # Projekt: [navn udledt af svar 1]
@@ -96,6 +115,21 @@ Reglerne er kalibreret til Next.js + Supabase. De er ikke firkantede absolutter 
 - Alle mutations sker i server actions med Zod-validering
 - Alle Supabase-tabeller har RLS aktiveret fra dag ét
 - Læs `docs/ARCHITECTURE.md` før større ændringer
+
+## Vigtigt — når du scaffolder Next.js-projektet
+
+Når brugeren beder dig om at scaffolde projektet (typisk via `create-next-app`), så vil den auto-generere en `.gitignore`. Tilføj følgende linjer til den `.gitignore` efter scaffolding:
+
+```
+# Local env files (overstyrer den standard create-next-app linje)
+.env*
+!.env.local.example
+
+# Claude Code
+.claude/settings.local.json
+```
+
+Det er fordi vi ikke vil have `.env.local` versionerent men `.env.local.example` skal med i Git.
 
 ## Verifikation
 - `pnpm typecheck`
@@ -437,47 +471,13 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 ### `.gitignore`
 
-Generér nøjagtigt dette indhold:
+**Generér IKKE en `.gitignore` selv.** Når brugeren scaffolder Next.js-projektet via `create-next-app`, vil scripts'et oprette en passende `.gitignore`. Vi tilføjer vores ekstra entries til den efter scaffolding — det står beskrevet i CLAUDE.md.
+
+Hvis der allerede ligger en `.gitignore` i mappen når `/start-project` køres (fx fordi brugeren har scaffolded først), så tjek om disse linjer er der og tilføj dem hvis ikke:
 
 ```
-# Dependencies
-node_modules
-.pnp
-.pnp.js
-
-# Testing
-coverage
-
-# Next.js
-.next
-out
-
-# Production
-build
-dist
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Local env files
 .env*
 !.env.local.example
-
-# Vercel
-.vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Claude Code
 .claude/settings.local.json
 ```
 
@@ -491,18 +491,44 @@ Efter filerne er oprettet, præsenter et kort forslag i chatten:
 
 ## 5. Slutbesked
 
+Tilpas beskeden afhængigt af om der var en PRD eller ej.
+
+**Hvis PRD blev fundet:**
+
+```
+✓ Fundamentet er klar — baseret på din PRD.
+
+Hvad jeg har lavet:
+- CLAUDE.md med projekt-konteksten udledt af din PRD
+- docs/ARCHITECTURE.md med foreslået datamodel og RLS-strategi
+- docs/regler/{sikkerhed,skalering,struktur}.md med opinionated regler
+- .env.local.example og .worktreeinclude
+
+Reglerne ligger i dit projekt og bliver auto-læst af Claude Code i hver session.
+
+Næste skridt:
+1. Sig til mig: "Byg nu Next.js + TypeScript + Tailwind-projektet ud fra PRD.md og CLAUDE.md"
+2. Når det er scaffolded, sig: "Opret Supabase-tabellerne med RLS som ARCHITECTURE.md siger"
+3. Begynd at bygge features
+```
+
+**Hvis det var spørgsmåls-vejen:**
+
 ```
 ✓ Fundamentet er klar.
 
 Hvad jeg har lavet:
 - CLAUDE.md med projekt-konteksten
-- docs/ARCHITECTURE.md med datamodel og RLS-strategi
+- docs/ARCHITECTURE.md med foreslået datamodel og RLS-strategi
 - docs/regler/{sikkerhed,skalering,struktur}.md med opinionated regler
-- .gitignore, .env.local.example, .worktreeinclude
+- .env.local.example og .worktreeinclude
 
-Reglerne ligger i dit projekt og bliver auto-læst af Claude Code i hver session. Hvis du senere vil ændre en regel, åbn bare filen og ret den.
+Reglerne ligger i dit projekt og bliver auto-læst af Claude Code i hver session.
 
-Næste skridt: opret Supabase-tabellerne med RLS aktiveret før første query. Når det er klar, så fortæl mig hvad vi bygger først.
+Næste skridt:
+1. Sig til mig: "Byg nu Next.js + TypeScript + Tailwind-projektet ud fra CLAUDE.md"
+2. Når det er scaffolded, sig: "Opret Supabase-tabellerne med RLS som ARCHITECTURE.md siger"
+3. Begynd at bygge features
 ```
 
 ## 6. Stop
