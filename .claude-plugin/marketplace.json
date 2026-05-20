@@ -8,8 +8,8 @@
     {
       "name": "vibecode-starter",
       "source": "./plugins/vibecode-starter",
-      "description": "Sikkerheds-, skalerings- og arkitektur-guardrails til vibe coding med Next.js, Supabase og Claude Code",
-      "version": "0.2.0",
+      "description": "Bootstrap dit Next.js + Supabase-projekt med CLAUDE.md og lokale regelfiler for sikkerhed, skalering og struktur",
+      "version": "0.2.1",
       "author": {
         "name": "Ruben Juncher"
       }

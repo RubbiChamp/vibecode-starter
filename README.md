@@ -1,17 +1,35 @@
 # vibecode-starter
 
-Et Claude Code-plugin der gør Claude skarpere på security, skalering og struktur når du vibe coder Next.js + Supabase-projekter.
+Et lille Claude Code-plugin der bootstrapper dit Next.js + Supabase-projekt med en gennemtænkt `CLAUDE.md`, en arkitektur-skitse og tre lokale regelfiler om sikkerhed, skalering og struktur.
 
 Lavet af [Ruben Juncher](https://rubenjuncher.dk) til hans kursusmedlemmer.
 
-## Hvad er i kassen
+## Hvad gør plugin'et
 
-- **`juncher-security`** — auto-aktiverer på server actions, database queries, auth-flows, secrets, JWT, cookies, og alt med user input. Forhindrer RLS-fejl, secret-lækager, IDOR/BOLA, dårlig validering, og resten af de klassiske fælder.
-- **`juncher-scaling`** — auto-aktiverer på lister, paginering, queries, billeder og dashboards. Forhindrer `SELECT *`, manglende pagination, ikke-virtualiserede lister og bundle-mareridt.
-- **`juncher-architecture`** — auto-aktiverer ved nye filer, refaktoreringer og struktur-spørgsmål. Holder mappestruktur, fil-størrelser og server/client-grænser sunde.
-- **`/start-project`** — én slash-command der bygger projekt-fundamentet (CLAUDE.md, ARCHITECTURE.md, PROGRESS.md, `.env.local.example`, `.gitignore`, `.worktreeinclude`) efter 5 hurtige spørgsmål.
+**Én ting:** Når du står i en tom projektmappe og kører `/start-project`, stiller Claude dig 3 spørgsmål om dit projekt og opretter derefter:
 
-Plugin'et **bygger ikke koden for dig**, det **scanner ikke koden**, og det **validerer ikke noget**. Det er en stille mentor i baggrunden, der får Claude til at træffe de rigtige valg fra start.
+- `CLAUDE.md` med projekt-konteksten (Claude læser den automatisk hver session)
+- `docs/ARCHITECTURE.md` med foreslået datamodel og RLS-strategi
+- `docs/PROGRESS.md` — log over hvad der sker i projektet
+- `docs/regler/sikkerhed.md` — destilleret fra fælles fælder på Next.js + Supabase
+- `docs/regler/skalering.md` — pragmatiske regler, ingen premature optimization
+- `docs/regler/struktur.md` — feature-baseret mappestruktur og basale konventioner
+- `.gitignore`, `.env.local.example`, `.worktreeinclude`
+
+Det er det. Plugin'et gør **intet andet** end at oprette de filer. Der er ingen globale skills, ingen baggrunds-magi, intet der kører i dine andre projekter.
+
+## Hvorfor det her er smart
+
+- **Du ejer reglerne.** Filerne ligger i dit projekt og committes til Git. Vil du ændre en regel, åbn filen og ret den.
+- **Reglerne overlever plugin-fjernelse.** Hvis du afinstallerer plugin'et, ligger fundamentet stadig i dit projekt.
+- **Ingen globale bivirkninger.** Andre projekter på din computer mærker intet til plugin'et.
+- **Claude Code læser CLAUDE.md automatisk.** Reglerne er aktive i hver session — fordi Claude faktisk åbner dem, ikke fordi der sker noget magisk i baggrunden.
+
+## Stack-anbefaling (ikke -låsning)
+
+Plugin'et er kalibreret til **Next.js (App Router) + TypeScript + Tailwind + Supabase + Vercel**. Det er den stack reglerne forudsætter — især sikkerhedsreglerne om RLS, `auth.uid()` og Supabase-client.
+
+Hvis du bruger en anden stack (Drizzle, Prisma, Firebase, Pages Router), bør du **ikke bruge plugin'et** — eller alternativt: kør `/start-project`, slet de regelfiler der ikke passer, og tilret resten manuelt.
 
 ## Installation
 
@@ -23,9 +41,7 @@ I Claude Code:
 /reload-plugins
 ```
 
-Derefter er skills aktive automatisk i alle dine projekter.
-
-## Sådan starter du et nyt projekt
+## Brug
 
 Naviger til en tom mappe og kør:
 
@@ -33,7 +49,7 @@ Naviger til en tom mappe og kør:
 /start-project
 ```
 
-Claude stiller fem strategiske spørgsmål og opretter herefter projekt-fundamentet.
+Claude stiller 3 spørgsmål og opretter fundamentet. Tager 5-10 minutter.
 
 ## Opdatering
 
@@ -53,7 +69,7 @@ Claude stiller fem strategiske spørgsmål og opretter herefter projekt-fundamen
 
 ## Credit
 
-Security-reglerne er destilleret fra det enorme arbejde Christoffer Ohlsen har lagt i [SafeVibe.Codes](https://safevibe.codes) — over 190 statiske og dynamiske checks for vibe-coded apps. Plugin'et importerer ingen kode derfra; det er ren viden, oversat til adfærdsregler for Claude.
+Sikkerhedsreglerne er destilleret fra det enorme arbejde Christoffer Ohlsen har lagt i [SafeVibe.Codes](https://safevibe.codes) — over 190 statiske og dynamiske checks for vibe-coded apps. Plugin'et importerer ingen kode derfra; det er ren viden, oversat til menneskeligt sprog.
 
 ## Licens
 
