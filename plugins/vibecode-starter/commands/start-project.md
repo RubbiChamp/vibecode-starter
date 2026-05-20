@@ -232,30 +232,65 @@ Skriv NØJAGTIGT følgende indhold:
 
 Pragmatiske regler. Vi forhindrer katastrofer, ikke premature optimization. MVP'er skal kunne flyve uden bagage.
 
-## Den vigtigste regel: eksplicit limit på alle queries
+## Den vigtigste regel: eksplicit limit + pagination når listen kan vokse
 
-Alle Supabase-queries SKAL have et eksplicit `.limit()`. Sæt det til hvad du faktisk skal vise. Lad det aldrig være implicit "hent alt".
+Alle Supabase-queries der returnerer arrays SKAL have et eksplicit `.limit()`. Men `.limit()` alene skaber en **silent bug** hvis listen kan vokse forbi din limit — brugeren ser 20 ud af 125 tilbud og opdager aldrig at de mangler resten.
+
+Derfor: limit og pagination hører sammen. Beslut én af de tre kategorier før du skriver query'en:
+
+### Kategori A — Liste der kan vokse (95% af tilfældene)
+
+Opskrifter, tilbud, ordrer, kommentarer, posts, opgaver, billeder. Alt brugergeneret eller alt der vokser over tid.
+
+→ **`.limit(20-50)` PLUS pagination eller "indlæs flere" fra start.**
 
 ```ts
-// GØR — eksplicit limit der matcher hvad du viser
-const { data } = await supabase
-  .from('opskrifter')
-  .select('id, titel, billede')
+// GØR — limit + pagination via .range() fra dag ét
+const PAGE_SIZE = 20;
+const { data, count } = await supabase
+  .from('tilbud')
+  .select('id, titel, pris', { count: 'exact' })
   .order('created_at', { ascending: false })
-  .limit(20);
+  .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
-// IKKE GØR — kan eksplodere når tabellen vokser
-const { data } = await supabase.from('opskrifter').select('*');
+// Eller "indlæs flere"-knap der øger limit
+const { data } = await supabase
+  .from('tilbud')
+  .select('id, titel, pris')
+  .order('created_at', { ascending: false })
+  .limit(visibleCount);
 ```
 
-## Pagination — kun når listen vokser
+### Kategori B — Liste med naturligt fast loft
 
-Pagination er ikke noget du skal sætte op fra dag ét på hver liste. Det er noget du tilføjer **når en liste reelt nærmer sig 50-100 items**. Indtil da: brug `.limit()` der matcher hvad du viser og hold det simpelt.
+Lande-dropdown (~250), statusser (~5), kategorier (~10-30), månedsvalg (12), brugerens egne indstillinger.
 
-Når listen vokser:
-- 50-200 items: tilføj pagination med "side 1, 2, 3..."-knapper eller en "indlæs flere"-knap
-- 200+ items: cursor-baseret pagination (mere effektiv end OFFSET ved store tabeller)
-- 500+ synlige items i DOM: virtualisering (`react-window` eller `@tanstack/react-virtual`)
+→ **`.limit(N)` hvor N dækker alle realistiske entries med margin. Ingen pagination nødvendig.**
+
+```ts
+// Lande — der findes ~250 i verden, sæt limit der dækker
+const { data } = await supabase.from('lande').select('kode, navn').limit(300);
+```
+
+### Kategori C — Detail-views
+
+Hentet via `.single()` eller `.maybeSingle()` med en `.eq('id', ...)`-filter.
+
+→ **Ingen limit nødvendig — der kommer kun én række tilbage per design.**
+
+## Når du er i tvivl
+
+Spørg dig selv: **"Kan denne liste vokse forbi det jeg har sat som limit?"**
+
+- Hvis ja → kategori A. Pagination eller "indlæs flere" fra dag ét. Det er langt billigere at sætte op nu end at fixe efter brugere har klaget over manglende data.
+- Hvis nej → kategori B. Sæt limit'en højt nok til at dække realistiske entries.
+
+ALDRIG `.select('*')` uden nogen form for limit — det er den eneste regel der er absolut.
+
+## Hvornår virtualisering bliver relevant
+
+- 50-200 items synlige: pagination/load-more er nok
+- 500+ items synlige i DOM på samme tid: tilføj virtualisering (`react-window` eller `@tanstack/react-virtual`)
 
 ## Database — undgå katastrofer
 

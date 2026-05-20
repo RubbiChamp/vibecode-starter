@@ -1,6 +1,6 @@
 {
   "name": "vibecode-starter",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Bootstrap dit Next.js + Supabase-projekt med en gennemtænkt CLAUDE.md og lokale regelfiler for sikkerhed, skalering og struktur. Én slash-command. Ingen globale skills. Ingen overraskelser.",
   "author": {
     "name": "Ruben Juncher",
