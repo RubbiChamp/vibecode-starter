@@ -1,179 +1,51 @@
 ---
-description: Starter et nyt vibe coding-projekt. Læser en PRD hvis den ligger i mappen, ellers stiller 3 spørgsmål. Opretter CLAUDE.md, arkitektur-skitse og lokale regelfiler.
+description: Lægger en sikkerheds- og strukturkøreplan ind i projektet, som Claude vil følge når den bygger.
 ---
 
-Du skal nu køre `/start-project`-flowet. Følg disse instruktioner præcist. Hele flowet er på dansk.
+Du skal nu lægge fundamentet til et nyt vibe coding-projekt. Hele flowet er på dansk. Stil ingen spørgsmål — bare opret filerne.
 
-## 1. Tjek for en PRD først
+## Opret tre filer
 
-Inden du gør noget andet, tjek om der ligger en PRD-fil i projektmappen. Tjek disse stier i rækkefølge med `Read`-tool'et (det er fint at få "fil findes ikke"-fejl):
-
-- `PRD.md`
-- `prd.md`
-- `docs/PRD.md`
-- `docs/prd.md`
-
-Hvis du finder en PRD: noter dens sti og indhold. Den er nu **primær kilde** til projekt-konteksten — ikke brugeren. Spring direkte til afsnit 3 nedenfor.
-
-Hvis der IKKE er en PRD: fortsæt til afsnit 2 (velkomstbesked + 3 spørgsmål).
-
-## 2. Velkomstbesked + 3 spørgsmål (kun hvis ingen PRD blev fundet)
-
-### Velkomstbesked
-
-Send følgende besked (eller en meget tæt parafrase):
-
-> Jeg kunne ikke finde en PRD-fil i mappen. Det er helt fint — jeg stiller dig **3 hurtige spørgsmål** så jeg kan bygge fundamentet alligevel.
->
-> Tip til næste gang: hvis du diskuterer din idé med almindelig Claude først og får en PRD ud af det, så læg den i mappen som `PRD.md` før du kører `/start-project`. Så genererer jeg fundamentet direkte fra PRD'en uden at stille spørgsmål.
->
-> Klar? Skriv "ja" så går vi i gang.
-
-Vent på brugerens bekræftelse før du fortsætter.
-
-### Stil de 3 spørgsmål — ét ad gangen
-
-VIGTIGT: Stil ét spørgsmål ad gangen. Vent på svar mellem hvert. Vis eksempler så det er nemt at svare.
-
-### Spørgsmål 1
-
-> **Fortæl mig om din idé — bare frit fra leveren.**
->
-> Hvad er det for en app eller et website du gerne vil bygge? Hvilket problem løser det, hvem er det til, og hvad skal man kunne i appen?
->
-> Skriv som om du forklarer det til en ven over kaffe. Jo mere du skriver, jo bedre fundament får vi — gerne 5-10 sætninger. Du må også gerne nævne hvilke 3-5 features der er must-have for første version.
-
-### Spørgsmål 2
-
-> **Skal folk kunne logge ind, og er der forskellige slags brugere?**
->
-> Vælg det der minder mest om din app:
->
-> - "Nej, alle ser bare det samme — ingen login"
-> - "Ja, alle brugere er ens — de logger ind for at se deres egne ting"
-> - "Ja, der er fx admin og almindelige brugere — admin kan mere"
-> - "Det er multi-tenant — fx firmaer med hver deres data adskilt"
->
-> Der er ingen forkerte svar — vælg det der ligger tættest på.
-
-### Spørgsmål 3
-
-> **Hvad er de vigtigste ting din app gemmer — og er noget af det privat?**
->
-> Tænk på det som lister du gemmer i appen. Fx "opskrifter, kommentarer, brugerprofiler". Eller "kundekartotek, fakturaer, kvitteringer".
->
-> Og er noget af det følsomt? Fx CPR-numre, helbredsdata, betalingsinfo eller børn-data? Eller er det "bare almindelige ting"?
-
-Notér svarene undervejs.
-
-## 3. Generér filerne
-
-Du har nu enten:
-- **PRD-vej:** Læst en PRD som primær kilde
-- **Spørgsmåls-vej:** Tre svar fra brugeren
-
-Opret filerne herunder i projektets root (cwd). Brug `Write`-tool'et til hver fil.
-
-Hvor jeg skriver "[Svar 1]", "[Svar 2]", "[Svar 3]" nedenfor:
-- Hvis du har en PRD: udled informationen fra PRD'en
-- Hvis du har svar fra spørgsmål: brug dem direkte
-
-Hvis du har en PRD og noget kritisk er uklart (fx PRD'en nævner intet om login, eller intet om hvilke "ting" der gemmes), stil **maks 1-2 opklarende spørgsmål** før du genererer filerne. Stil ikke spørgsmål om noget PRD'en allerede svarer på.
+Brug `Write`-tool'et til hver fil.
 
 ### `CLAUDE.md`
 
-Generér ud fra konteksten. Hold den under ~120 linjer. Brug denne struktur:
-
 ```markdown
-# Projekt: [navn udledt af svar 1]
+# Projekt
 
-## Hvad bygger vi
-[Svar 1 — gengiv som 3-6 sætninger der opsummerer idé, problem, brugere og features]
+Dette projekt bruger lokale regelfiler som du SKAL læse før du skriver eller ændrer kode:
 
-## Brugere og auth
-[Svar 2 — kort om hvem brugerne er og hvilken auth-model der gælder]
+- `docs/regler/sikkerhed.md` — sikkerhedsregler (RLS, secrets, server actions, rate limiting m.m.)
+- `docs/regler/struktur.md` — mappestruktur og kodekonventioner
 
-## Stack
-- Next.js (App Router) + TypeScript + Tailwind
-- Supabase (Postgres + Auth + RLS)
-- Hostet på Vercel
+Reglerne er kalibreret til **Next.js (App Router) + TypeScript + Tailwind + Supabase + Vercel**. Hvis projektet skifter stack, opdater eller fjern reglerne.
 
-Bemærk: Dette projekt er bygget med vibecode-starter, som er kalibreret til præcis denne stack. Hvis du senere skifter database eller framework, så opdater eller fjern regelfilerne i `docs/regler/` så du ikke får vildledende råd.
+## Når du bygger projektet
 
-## Vigtige ting i systemet
-[Svar 3 — listen af "ting" som korte bullets, samt om noget er følsomt og hvad det betyder]
+Når brugeren beder dig bygge dette projekt (typisk ud fra en `PRD.md` eller anden specifikation):
 
-## Regelsæt — læs disse før du skriver kode
-Dette projekt bruger lokale regelfiler. Inden du genererer eller ændrer kode, læs:
-- `docs/regler/sikkerhed.md`
-- `docs/regler/skalering.md`
-- `docs/regler/struktur.md`
+1. Læs regelfilerne først
+2. Følg dem fra første linje kode
+3. Foretræk **Supabase MCP** (`mcp__supabase__*`) til database-arbejde når den er konfigureret
+4. Foretræk **GitHub CLI** (`gh repo create`, `gh pr` osv.) til GitHub-arbejde
+5. Stop og spørg brugeren om bekræftelse før du opretter eksterne ressourcer (Supabase-projekter, GitHub repos, deploys)
+6. Udfyld denne `CLAUDE.md` med projekt-konteksten når du bygger — overskriv denne sektion med "Hvad bygger vi", "Brugere og auth", "Vigtige ting i systemet" osv.
 
-Reglerne er kalibreret til Next.js + Supabase. De er ikke firkantede absolutter — de er gennemtænkte standarder. Afvig hvor det giver mening, men nævn det.
+## Mentor-mandat
 
-## Konventioner
-- Alle mutations sker i server actions med Zod-validering
-- Alle Supabase-tabeller har RLS aktiveret fra dag ét
-- Læs `docs/ARCHITECTURE.md` før større ændringer
-
-## Supabase MCP
-Hvis Supabase MCP er konfigureret i Claude Code (værktøjer som `mcp__supabase__*` er tilgængelige), foretræk altid at bruge MCP'en til at oprette tabeller, anvende migrations, køre queries og inspicere data — i stedet for at generere SQL som brugeren manuelt skal køre i dashboardet.
-
-Hvis MCP ikke er tilgængelig: generér SQL og forklar i 2-3 trin hvor brugeren kopierer det ind (Supabase Dashboard → SQL Editor → Run).
-
-## Vigtigt — når du scaffolder Next.js-projektet
-
-Når brugeren beder dig om at scaffolde projektet (typisk via `create-next-app`), så vil den auto-generere en `.gitignore`. Tilføj følgende linjer til den `.gitignore` efter scaffolding:
-
-```
-# Local env files (overstyrer den standard create-next-app linje)
-.env*
-!.env.local.example
-
-# Claude Code
-.claude/settings.local.json
-```
-
-Det er fordi vi ikke vil have `.env.local` versionerent men `.env.local.example` skal med i Git.
-
-## Verifikation
-- `pnpm typecheck`
-- `pnpm test` (når der er tests)
-- `pnpm build`
-```
-
-### `docs/ARCHITECTURE.md`
-
-Skitsér på baggrund af svarene:
-
-- **Datamodel**: Én sektion per "ting" fra svar 3. For hver: foreslåede kolonner (med typer), foreign keys, og hvem der ejer rækken (drives af svar 2).
-- **RLS-strategi**: Hvilke policies hver tabel skal have (SELECT, INSERT, UPDATE, DELETE). Eksplicit hvem der må hvad.
-- **Server actions vs route handlers**: Hvor mutations sker. Hvor evt. webhooks lander.
-- **Public surface**: Hvilke routes er åbne uden login, hvilke kræver auth.
-- **Privacy-konsekvenser**: Hvis svar 3 indeholdt følsomme data, så hvad det betyder for opbevaring, logging og audit.
-
-### `docs/PROGRESS.md`
-
-Brug faktisk dato i format `YYYY-MM-DD`. Hvis du ikke kender dagens dato, så spørg brugeren, eller udled fra system-kontekst.
-
-```markdown
-# Progress log
-
-- YYYY-MM-DD Projekt startet med `/start-project`
+Brugeren er ofte ikke-developer. Når du implementerer noget der kræver opsætning udenfor koden (env vars, eksterne services, integrationer), forklar i 3-4 nummererede trin hvad de skal gøre, og hvorfor det er vigtigt — i én linje.
 ```
 
 ### `docs/regler/sikkerhed.md`
 
-Skriv NØJAGTIGT følgende indhold:
-
 ````markdown
 # Sikkerhedsregler
 
-Disse regler gælder for hele dette projekt. Når du genererer eller ændrer kode, så følg dem. De er destilleret fra fælles fælder vibe-coders falder i på Next.js + Supabase.
+Disse regler gælder for hele dette projekt. Følg dem når du genererer eller ændrer kode. De er destilleret fra fælles fælder vibe-coders falder i på Next.js + Supabase.
 
 ## Mentor-mandat
 
-Du er mentor for en bruger der ikke nødvendigvis kender hver teknisk detalje. Når du implementerer noget sikkerhedsrelateret (rate limiting, env vars, RLS, auth), så **forklar i 3-4 nummererede trin hvad brugeren skal gøre udenfor koden** — fx tilføj env vars i Vercel, opret en konto hos en service, klik en bestemt knap. Forklar HVORFOR i én linje. Vær konkret, ikke abstrakt.
+Brugeren er ofte ikke-developer. Når du implementerer noget sikkerhedsrelateret (rate limiting, env vars, RLS, auth), så **forklar i 3-4 nummererede trin hvad brugeren skal gøre udenfor koden** — fx tilføj env vars i Vercel, opret en konto hos en service, klik en bestemt knap. Forklar HVORFOR i én linje. Vær konkret, ikke abstrakt.
 
 ## RLS og Supabase
 
@@ -262,121 +134,12 @@ const tilbud = await supabase.from('tilbud').insert(input);     // ingen valider
 ```
 ````
 
-### `docs/regler/skalering.md`
-
-Skriv NØJAGTIGT følgende indhold:
-
-````markdown
-# Skaleringsregler
-
-Pragmatiske regler. Vi forhindrer katastrofer, ikke premature optimization. MVP'er skal kunne flyve uden bagage.
-
-## Den vigtigste regel: eksplicit limit + pagination når listen kan vokse
-
-Alle Supabase-queries der returnerer arrays SKAL have et eksplicit `.limit()`. Men `.limit()` alene skaber en **silent bug** hvis listen kan vokse forbi din limit — brugeren ser 20 ud af 125 tilbud og opdager aldrig at de mangler resten.
-
-Derfor: limit og pagination hører sammen. Beslut én af de tre kategorier før du skriver query'en:
-
-### Kategori A — Liste der kan vokse (95% af tilfældene)
-
-Opskrifter, tilbud, ordrer, kommentarer, posts, opgaver, billeder. Alt brugergeneret eller alt der vokser over tid.
-
-→ **`.limit(20-50)` PLUS pagination eller "indlæs flere" fra start.**
-
-```ts
-// GØR — limit + pagination via .range() fra dag ét
-const PAGE_SIZE = 20;
-const { data, count } = await supabase
-  .from('tilbud')
-  .select('id, titel, pris', { count: 'exact' })
-  .order('created_at', { ascending: false })
-  .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-
-// Eller "indlæs flere"-knap der øger limit
-const { data } = await supabase
-  .from('tilbud')
-  .select('id, titel, pris')
-  .order('created_at', { ascending: false })
-  .limit(visibleCount);
-```
-
-### Kategori B — Liste med naturligt fast loft
-
-Lande-dropdown (~250), statusser (~5), kategorier (~10-30), månedsvalg (12), brugerens egne indstillinger.
-
-→ **`.limit(N)` hvor N dækker alle realistiske entries med margin. Ingen pagination nødvendig.**
-
-```ts
-// Lande — der findes ~250 i verden, sæt limit der dækker
-const { data } = await supabase.from('lande').select('kode, navn').limit(300);
-```
-
-### Kategori C — Detail-views
-
-Hentet via `.single()` eller `.maybeSingle()` med en `.eq('id', ...)`-filter.
-
-→ **Ingen limit nødvendig — der kommer kun én række tilbage per design.**
-
-## Når du er i tvivl
-
-Spørg dig selv: **"Kan denne liste vokse forbi det jeg har sat som limit?"**
-
-- Hvis ja → kategori A. Pagination eller "indlæs flere" fra dag ét. Det er langt billigere at sætte op nu end at fixe efter brugere har klaget over manglende data.
-- Hvis nej → kategori B. Sæt limit'en højt nok til at dække realistiske entries.
-
-ALDRIG `.select('*')` uden nogen form for limit — det er den eneste regel der er absolut.
-
-## Hvornår virtualisering bliver relevant
-
-- 50-200 items synlige: pagination/load-more er nok
-- 500+ items synlige i DOM på samme tid: tilføj virtualisering (`react-window` eller `@tanstack/react-virtual`)
-
-## Database — undgå katastrofer
-
-- ALDRIG `SELECT *` på voksende tabeller — vælg konkrete kolonner
-- Indexer på kolonner brugt i `WHERE`, `ORDER BY`, `JOIN`
-- Composite indexes på filterkombinationer der bruges sammen
-- Undgå N+1 — brug Supabase's `.select('*, related(*)')` eller batch-fetches
-- Brug `revalidateTag` / `revalidatePath` til at cache read-heavy queries
-
-## Frontend lister og søgning
-
-- Søgning: debounce 300ms + server-side filtering
-- ALDRIG filter store datasæt client-side når det kan gøres server-side
-- Skeleton loaders ved første load, ikke spinners (mere stabilt layout)
-
-## Billeder
-
-- Brug Next.js `<Image>` med lazy loading som default
-- `priority` KUN på above-the-fold billeder
-- Sæt korrekt `sizes`-prop på alle Image-komponenter
-- ALDRIG importér store JSON-filer ind i bundle — load via fetch ved behov
-
-## Bundle og performance
-
-- Server components som default — kun `'use client'` når nødvendigt
-- Undgå at importere tunge libs (`recharts`, `pdfjs`, `monaco`) i shared layouts
-- Dynamic imports (`next/dynamic`) for tunge components der ikke vises ved første load
-
-## API-endpoints
-
-- Tilbyd `?limit` og `?cursor` (eller `?page`) params på liste-endpoints der har pagination
-- Cache headers (`Cache-Control: s-maxage=...`) på public read-endpoints der ikke er bruger-specifikke
-
-## Realtime og polling
-
-- Supabase Realtime: subscribe KUN på specifikke filtre, aldrig hele tabeller
-- Hvis polling: minimum 5-10 sekunder, og kun når faner er aktive (`document.visibilityState`)
-````
-
 ### `docs/regler/struktur.md`
-
-Skriv NØJAGTIGT følgende indhold:
 
 ````markdown
 # Struktur-regler
 
-Basale, opinionated retningslinjer for hvordan filer og mapper organiseres. Ikke firkantede — brug dem som standard, afvig hvor det giver mening.
+Basale, opinionated retningslinjer for hvordan filer og mapper organiseres. Brug dem som standard, afvig hvor det giver mening.
 
 ## Mappestruktur — feature-baseret
 
@@ -399,10 +162,8 @@ lib/
     client.ts
   validation.ts        ← Zod-schemas
 docs/
-  ARCHITECTURE.md
   regler/
     sikkerhed.md
-    skalering.md
     struktur.md
 ```
 
@@ -434,6 +195,19 @@ Undgå en stor `components/`-bunke med alle komponenter blandet sammen. Hold fea
 - ALDRIG `utils.ts`-bunkere — navngiv specifikt: `date-format.ts`, `currency.ts`, `slug.ts`
 - Barrel files (`index.ts`) KUN ved public boundaries, ikke overalt
 
+## .gitignore — ekstra entries efter scaffolding
+
+Når Next.js scaffoldes via `create-next-app`, opretter scriptet en `.gitignore`. Tilføj følgende linjer til den efter scaffolding:
+
+```
+# Local env files
+.env*
+!.env.local.example
+
+# Claude Code
+.claude/settings.local.json
+```
+
 ## Beslutninger der SKAL træffes før kode skrives
 
 - Hvilke tabeller findes? Skitsér datamodel
@@ -455,87 +229,25 @@ Undgå en stor `components/`-bunke med alle komponenter blandet sammen. Hold fea
 - Du er bange for at refaktorere → mangler tests
 ````
 
-### `.worktreeinclude`
+## Slutbesked
+
+Send følgende:
 
 ```
-.env*
-.mcp.json
-.claude/settings.local.json
+✓ Sikkerheds- og strukturkøreplanen er klar.
+
+Tre filer er lagt ind i projektet:
+- CLAUDE.md (auto-læses af mig i hver session)
+- docs/regler/sikkerhed.md
+- docs/regler/struktur.md
+
+Næste skridt: bed mig om at bygge projektet — gerne med reference til en PRD-fil hvis du har én. Fx:
+
+  "Byg dette projekt fra PRD.md og udfyld CLAUDE.md."
+
+Reglerne ligger i dit projekt og bliver auto-læst af mig i hver session. Du må gerne ændre dem hvis noget ikke passer dit specifikke projekt.
 ```
 
-### `.env.local.example`
+## Stop
 
-```
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-
-# Tilføj her hvad svar 1-3 ellers indikerer (Stripe, Resend, OpenAI, Upstash osv.)
-```
-
-### `.gitignore`
-
-**Generér IKKE en `.gitignore` selv.** Når brugeren scaffolder Next.js-projektet via `create-next-app`, vil scripts'et oprette en passende `.gitignore`. Vi tilføjer vores ekstra entries til den efter scaffolding — det står beskrevet i CLAUDE.md.
-
-Hvis der allerede ligger en `.gitignore` i mappen når `/start-project` køres (fx fordi brugeren har scaffolded først), så tjek om disse linjer er der og tilføj dem hvis ikke:
-
-```
-.env*
-!.env.local.example
-.claude/settings.local.json
-```
-
-## 4. Datamodel og RLS-forslag (inline i chatten)
-
-Efter filerne er oprettet, præsenter et kort forslag i chatten:
-
-- Skitsér datamodellen (tabeller + relationer)
-- Forslå RLS-policies pr. tabel (én linje pr. operation)
-- Marker hvad der er sikkerhedskritisk på baggrund af følsomheds-svaret
-
-## 5. Slutbesked
-
-Tilpas beskeden afhængigt af om der var en PRD eller ej.
-
-**Hvis PRD blev fundet:**
-
-```
-✓ Fundamentet er klar — baseret på din PRD.
-
-Hvad jeg har lavet:
-- CLAUDE.md med projekt-konteksten udledt af din PRD
-- docs/ARCHITECTURE.md med foreslået datamodel og RLS-strategi
-- docs/regler/{sikkerhed,skalering,struktur}.md med opinionated regler
-- .env.local.example og .worktreeinclude
-
-Reglerne ligger i dit projekt og bliver auto-læst af Claude Code i hver session.
-
-Næste skridt:
-1. Sig til mig: "Byg nu Next.js + TypeScript + Tailwind-projektet ud fra PRD.md og CLAUDE.md"
-2. Når det er scaffolded, sig: "Opret Supabase-tabellerne med RLS som ARCHITECTURE.md siger"
-3. Begynd at bygge features
-```
-
-**Hvis det var spørgsmåls-vejen:**
-
-```
-✓ Fundamentet er klar.
-
-Hvad jeg har lavet:
-- CLAUDE.md med projekt-konteksten
-- docs/ARCHITECTURE.md med foreslået datamodel og RLS-strategi
-- docs/regler/{sikkerhed,skalering,struktur}.md med opinionated regler
-- .env.local.example og .worktreeinclude
-
-Reglerne ligger i dit projekt og bliver auto-læst af Claude Code i hver session.
-
-Næste skridt:
-1. Sig til mig: "Byg nu Next.js + TypeScript + Tailwind-projektet ud fra CLAUDE.md"
-2. Når det er scaffolded, sig: "Opret Supabase-tabellerne med RLS som ARCHITECTURE.md siger"
-3. Begynd at bygge features
-```
-
-## 6. Stop
-
-Stop her. Byg ikke features. Stil ikke flere spørgsmål. Brugeren tager over herfra.
+Stop her. Byg ikke features. Stil ikke spørgsmål. Brugeren tager over.
