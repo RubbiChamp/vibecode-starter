@@ -9,7 +9,7 @@ Lavet af [Ruben Juncher](https://rubenjuncher.dk) til hans kursusmedlemmer.
 **Én ting:** Når du står i en projektmappe og kører `/start-project`, opretter Claude tre filer:
 
 - `CLAUDE.md` — auto-læses af Claude Code i hver session og peger på reglerne
-- `docs/regler/sikkerhed.md` — 7 sikkerhedsregler (de lavt hængende frugter)
+- `docs/regler/sikkerhed.md` — 8 sikkerhedsregler (de lavt hængende frugter)
 - `docs/regler/struktur.md` — basal struktur og konventioner
 
 Det er det. Ingen spørgsmål. Ingen globale skills. Ingen baggrunds-magi. Ingen pre-launch-checks. Ingen kodestil-bibel.
@@ -29,9 +29,10 @@ Sikkerheds-katastroferne for non-developers på Next.js + Supabase:
 2. `service_role`-nøglen aldrig client-side eller `NEXT_PUBLIC_`
 3. Ingen hardcoded API-keys, `.env.local` i `.gitignore`
 4. `auth.getUser()` ikke `getSession()` server-side
-5. Ownership-tjek når `service_role` bruges
-6. Zod-validering på server actions
-7. Stripe-webhooks: signature-verifikation med rå body (`req.text()`)
+5. Roller og permissions tjekkes aldrig fra client state
+6. Ownership-tjek når `service_role` bruges
+7. Zod-validering på server actions
+8. Webhooks: signature-verifikation med rå body (`req.text()`)
 
 Plus tre småting der ofte glemmes: Supabase Storage policies, `dangerouslySetInnerHTML` med DOMPurify, og at undlade at returnere rå DB-fejl til client.
 

@@ -65,11 +65,29 @@ Når du selv kan ordne det via Supabase MCP, `gh` CLI eller andre værktøjer, s
 
 4. **Brug `auth.getUser()` (IKKE `getSession()`) server-side.** `getSession()` validerer ikke JWT'en — den kan forfalskes. `getUser()` rammer Supabase og verificerer.
 
-5. **Når du bruger `service_role` i server action: tjek ownership eksplicit** (`user_id === user.id`). RLS gælder ikke når du bruger `service_role`. Når du bruger anon-klienten, stol på RLS — duplikér ikke tjek.
+5. **Roller og permissions tjekkes ALDRIG fra client state.** En `user.role === 'admin'`-check fra client (localStorage, React state, props sendt med fra client) kan forfalskes. Tjek altid server-side via et DB-opslag, RLS-policy eller JWT-claim:
 
-6. **Validér inputs med Zod på server actions** der skriver til DB eller kalder eksterne services. RLS beskytter mod uautoriseret adgang, ikke mod dårlige data.
+    ```ts
+    // IKKE GØR
+    if (user.role === 'admin') { /* ... */ }   // rolle fra client kan forfalskes
 
-7. **HVIS projektet bruger webhooks** (Stripe, Resend, Supabase auth-hooks osv.): verificér signaturen FØR du gør noget. Kritisk gotcha i Next.js App Router — body SKAL være rå tekst, ikke parsed JSON:
+    // GØR — server-side check
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    if (profile?.role !== 'admin') return { error: 'forbidden' };
+    ```
+
+    Endnu bedre: indkod rollen i en RLS-policy så databasen selv håndhæver det.
+
+6. **Når du bruger `service_role` i server action: tjek ownership eksplicit** (`user_id === user.id`). RLS gælder ikke når du bruger `service_role`. Når du bruger anon-klienten, stol på RLS — duplikér ikke tjek.
+
+7. **Validér inputs med Zod på server actions** der skriver til DB eller kalder eksterne services. RLS beskytter mod uautoriseret adgang, ikke mod dårlige data.
+
+8. **HVIS projektet bruger webhooks** (Stripe, Resend, Supabase auth-hooks osv.): verificér signaturen FØR du gør noget. Kritisk gotcha i Next.js App Router — body SKAL være rå tekst, ikke parsed JSON:
 
     ```ts
     // app/api/webhooks/stripe/route.ts
