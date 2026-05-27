@@ -1,6 +1,6 @@
 # vibecode-starter
 
-Et lille Claude Code-plugin der lægger en sikkerheds- og strukturkøreplan ind i dit projekt, så Claude følger den når den bygger.
+Et lille Claude Code-plugin der lægger en kort sikkerheds- og strukturkøreplan ind i dit projekt — de lavt hængende frugter Claude følger når den bygger.
 
 Lavet af [Ruben Juncher](https://rubenjuncher.dk) til hans kursusmedlemmer.
 
@@ -9,10 +9,10 @@ Lavet af [Ruben Juncher](https://rubenjuncher.dk) til hans kursusmedlemmer.
 **Én ting:** Når du står i en projektmappe og kører `/start-project`, opretter Claude tre filer:
 
 - `CLAUDE.md` — auto-læses af Claude Code i hver session og peger på reglerne
-- `docs/regler/sikkerhed.md` — sikkerhedsregler destilleret fra fælles fælder på Next.js + Supabase
-- `docs/regler/struktur.md` — basal mappestruktur og kodekonventioner
+- `docs/regler/sikkerhed.md` — 7 sikkerhedsregler (de lavt hængende frugter)
+- `docs/regler/struktur.md` — basal struktur og konventioner
 
-Det er det. Ingen spørgsmål. Ingen globale skills. Ingen baggrunds-magi.
+Det er det. Ingen spørgsmål. Ingen globale skills. Ingen baggrunds-magi. Ingen pre-launch-checks. Ingen kodestil-bibel.
 
 ## Hvorfor det her er smart
 
@@ -20,6 +20,20 @@ Det er det. Ingen spørgsmål. Ingen globale skills. Ingen baggrunds-magi.
 - **Reglerne overlever plugin-fjernelse.** Hvis du afinstallerer plugin'et, ligger fundamentet stadig i dit projekt.
 - **Ingen globale bivirkninger.** Andre projekter på din computer mærker intet til plugin'et.
 - **Rules-first.** Reglerne lægges ned FØR Claude skriver første linje kode — så den allerførste kode er allerede compliant.
+
+## Det reglerne dækker
+
+Sikkerheds-katastroferne for non-developers på Next.js + Supabase:
+
+1. RLS på alle tabeller fra dag ét
+2. `service_role`-nøglen aldrig client-side eller `NEXT_PUBLIC_`
+3. Ingen hardcoded API-keys, `.env.local` i `.gitignore`
+4. `auth.getUser()` ikke `getSession()` server-side
+5. Ownership-tjek når `service_role` bruges
+6. Zod-validering på server actions
+7. Stripe-webhooks: signature-verifikation med rå body (`req.text()`)
+
+Plus tre småting der ofte glemmes: Supabase Storage policies, `dangerouslySetInnerHTML` med DOMPurify, og at undlade at returnere rå DB-fejl til client.
 
 ## Anbefalet workflow
 
