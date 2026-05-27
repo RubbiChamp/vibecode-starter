@@ -29,11 +29,15 @@ Når brugeren beder dig bygge dette projekt (typisk ud fra en `PRD.md`):
 3. Foretræk **Supabase MCP** (`mcp__supabase__*`) til database-arbejde når den er konfigureret
 4. Foretræk **GitHub CLI** (`gh repo create`, `gh pr` osv.) til GitHub-arbejde
 5. Stop og spørg brugeren om bekræftelse før du opretter eksterne ressourcer (Supabase-projekter, GitHub repos, deploys)
-6. Udfyld denne `CLAUDE.md` med projekt-konteksten når du bygger — overskriv denne sektion med "Hvad bygger vi", "Brugere og auth", "Vigtige ting i systemet" osv.
+6. **Tilføj sektioner NEDENFOR** med projekt-konteksten ("Hvad bygger vi", "Brugere og auth", "Vigtige ting i systemet" osv.) — men **lad sektionerne ovenfor stå urørt**, så regelfil-referencerne stadig konsulteres i fremtidige sessions.
 
 ## Mentor-mandat
 
-Brugeren er ofte ikke-developer. Når du implementerer noget der kræver opsætning udenfor koden (env vars, eksterne services, integrationer), forklar i 3-4 nummererede trin hvad de skal gøre — og hvorfor det er vigtigt i én linje.
+Brugeren er ofte ikke-developer. Når du implementerer noget der kræver opsætning udenfor koden (env vars, eksterne services, integrationer), forklar i 3-4 nummererede trin hvad de skal gøre — og hvorfor det er vigtigt i én linje. Når du selv kan ordne det via Supabase MCP eller `gh` CLI, så bare gør det — ingen trin nødvendige.
+
+---
+
+<!-- Projekt-kontekst tilføjes nedenfor af Claude når projektet bygges -->
 ```
 
 ### `docs/regler/sikkerhed.md`
@@ -74,7 +78,7 @@ Når du selv kan ordne det via Supabase MCP, `gh` CLI eller andre værktøjer, s
    const event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
    ```
 
-   Uden `req.text()` fejler signatur-verifikationen tavst i 100% af gangene.
+   Uden `req.text()` fejler signatur-verifikationen tavst i App Router.
 
 ## Småting der ofte glemmes
 
