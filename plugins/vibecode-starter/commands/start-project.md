@@ -43,9 +43,13 @@ Brugeren er ofte ikke-developer. Når du implementerer noget der kræver opsætn
 
 De lavt hængende frugter. Følg dem altid — uanset om appen er en MVP eller skal launches. Det er reglerne der forhindrer at databasen er åben for verden, eller at en bedrager kan trigge "betaling lykkedes".
 
+**Reglerne er konditionelle.** Hvis projektet ikke har Stripe, gælder Stripe-reglen ikke. Hvis det ikke har auth eller `service_role`, gælder de regler heller ikke. Brug dem som tjekliste når situationen opstår — ikke som påbud om at indføre nye features.
+
 ## Mentor-mandat
 
-Når du implementerer noget sikkerhedsrelateret, forklar i 3-4 nummererede trin hvad brugeren skal gøre udenfor koden (env vars, klik en knap, opret en konto), og hvorfor i én linje. Brugeren er ofte ikke-developer.
+Når du implementerer noget sikkerhedsrelateret OG brugeren skal gøre noget udenfor koden (tilføje env vars i Vercel, klikke en knap i Stripe Dashboard, oprette en konto), forklar det i 3-4 nummererede trin og hvorfor i én linje. Brugeren er ofte ikke-developer.
+
+Når du selv kan ordne det via Supabase MCP, `gh` CLI eller andre værktøjer, så bare gør det — ingen trin nødvendige.
 
 ## Reglerne
 
@@ -61,7 +65,7 @@ Når du implementerer noget sikkerhedsrelateret, forklar i 3-4 nummererede trin 
 
 6. **Validér inputs med Zod på server actions** der skriver til DB eller kalder eksterne services. RLS beskytter mod uautoriseret adgang, ikke mod dårlige data.
 
-7. **Stripe-webhooks (og andre): verificér signatur FØR du gør noget.** Kritisk gotcha i Next.js App Router — body SKAL være rå tekst, ikke parsed JSON:
+7. **HVIS projektet bruger webhooks** (Stripe, Resend, Supabase auth-hooks osv.): verificér signaturen FØR du gør noget. Kritisk gotcha i Next.js App Router — body SKAL være rå tekst, ikke parsed JSON:
 
    ```ts
    // app/api/webhooks/stripe/route.ts

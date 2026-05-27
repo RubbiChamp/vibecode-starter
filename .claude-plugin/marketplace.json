@@ -9,7 +9,7 @@
       "name": "vibecode-starter",
       "source": "./plugins/vibecode-starter",
       "description": "Sikkerheds- og strukturkøreplan til Next.js + Supabase — de lavt hængende frugter Claude følger når den bygger",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "Ruben Juncher"
       }
