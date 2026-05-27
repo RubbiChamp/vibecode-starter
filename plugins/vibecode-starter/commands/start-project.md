@@ -71,14 +71,14 @@ Når du selv kan ordne det via Supabase MCP, `gh` CLI eller andre værktøjer, s
 
 7. **HVIS projektet bruger webhooks** (Stripe, Resend, Supabase auth-hooks osv.): verificér signaturen FØR du gør noget. Kritisk gotcha i Next.js App Router — body SKAL være rå tekst, ikke parsed JSON:
 
-   ```ts
-   // app/api/webhooks/stripe/route.ts
-   const body = await req.text();  // IKKE req.json()
-   const signature = req.headers.get('stripe-signature')!;
-   const event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
-   ```
+    ```ts
+    // app/api/webhooks/stripe/route.ts
+    const body = await req.text();  // IKKE req.json()
+    const signature = req.headers.get('stripe-signature')!;
+    const event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+    ```
 
-   Uden `req.text()` fejler signatur-verifikationen tavst i App Router.
+    Uden `req.text()` fejler signatur-verifikationen tavst i App Router.
 
 ## Småting der ofte glemmes
 
