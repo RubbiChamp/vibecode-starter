@@ -20,9 +20,9 @@ Dette projekt bruger to lokale regelfiler som du SKAL læse før du skriver elle
 
 Reglerne er kalibreret til **Next.js (App Router) + TypeScript + Tailwind + Supabase + Vercel**.
 
-## Når du bygger projektet
+## Sådan arbejder du i dette projekt
 
-Når brugeren beder dig bygge dette projekt (typisk ud fra en `PRD.md`):
+Disse regler gælder altid — uanset om det er første build eller du tilføjer features senere:
 
 1. Læs regelfilerne først
 2. Følg dem fra første linje kode
