@@ -64,12 +64,34 @@ Brugeren er ofte ikke-developer. Når du implementerer noget sikkerhedsrelateret
 - `.env.local.example` committes med kun pladsholdere
 - Brug `process.env.X` server-side og verificér eksistens ved opstart
 
-## Server actions og database-adgang
+## Database-adgang: client-direkte vs server actions
 
-- ALDRIG direkte Supabase-client-mutationer fra client components — wrap alt i server actions eller route handlers
+Supabase er bygget til at blive brugt direkte fra klienten — RLS er hovedforsvaret. Brug ikke server actions per refleks; vælg ud fra opgaven.
+
+**Direkte client-side queries er foretrukket når:**
+- Det er almindelig CRUD (læs liste, opdater egen profil, slet eget opslag)
+- RLS-policies dækker sikkerheden
+- Du vil have realtime, optimistic updates eller den native Supabase-oplevelse
+
+**Brug server actions (eller route handlers) når:**
+- Du har brug for `service_role`-nøglen (admin-operationer)
+- Du integrerer med eksterne services der kræver secrets (Stripe, OpenAI, Resend)
+- Du gør kompleks validering der ikke kan udtrykkes som RLS-policy
+- Du orkestrerer flere koordinerede operationer (oprette user + sende email + skrive log)
+
+**Validér altid inputs med Zod** — uanset om det er client eller server. RLS beskytter mod uautoriseret adgang, ikke mod dårlige data.
+
+## Auth-tjek server-side
+
 - Kald `auth.getUser()` (IKKE `getSession()`) server-side før mutationer — `getSession()` validerer ikke JWT'en
-- Tjek ownership (`user_id === user.id`) på alle reads og writes — forhindrer IDOR
-- Validér ALLE inputs med Zod FØR de når databasen
+- Cookies SKAL have: `httpOnly: true`, `secure: true` i production, `sameSite: 'lax'` eller `'strict'`
+
+## Ownership-tjek — kun når RLS er omgået
+
+- **Bruger anon-klienten** (client-side eller server-side): stol på RLS. Det er hele pointen — duplikér ikke tjek.
+- **Bruger `service_role` i server action**: tjek ownership eksplicit (`user_id === user.id`), fordi RLS ikke gælder her.
+
+Defense-in-depth er en produktions-optimering, ikke en MVP-regel.
 
 ## Input-validering og output
 
@@ -77,18 +99,11 @@ Brugeren er ofte ikke-developer. Når du implementerer noget sikkerhedsrelateret
 - Client-side validering er UX, ikke sikkerhed — gentag alt server-side
 - ALDRIG returnér rå database-fejl til client — log server-side, send generisk besked
 - ALDRIG `dangerouslySetInnerHTML` uden DOMPurify
-- ALDRIG `eval()` eller `new Function()` med user input
-
-## Auth og cookies
-
-- Cookies SKAL have: `httpOnly: true`, `secure: true` i production, `sameSite: 'lax'` eller `'strict'`
-- ALDRIG `algorithm: "none"` i JWT
-- Altid `expiresIn` på JWT'er
-- ALDRIG `jwt.decode()` uden `jwt.verify()` først
+- Ingen `eval()` / `new Function()` med user input
 
 ## Rate limiting — det vigtigste at få ret
 
-Implementér rate limiting på endpoints der kan koste penge eller misbruges. Konkrete tærskler:
+Implementér rate limiting på endpoints der kan koste penge eller misbruges:
 
 | Endpoint-type | Rate limit fra start? |
 |---|---|
@@ -99,38 +114,112 @@ Implementér rate limiting på endpoints der kan koste penge eller misbruges. Ko
 | Almindelige form submissions | Vent til lige før launch |
 | Search og list-endpoints | Vent til lige før launch |
 
-**Anbefalet service:** Upstash Ratelimit (gratis tier dækker MVP'er). Vis brugeren begge opsætnings-veje:
+**Lokal dev:** in-memory rate limiting er fint.
 
-1. **Hurtigst (Vercel-brugere):** Vercel → projekt → Storage → "Add Upstash". Env vars sættes automatisk.
-2. **Mest fleksibelt:** Opret konto på upstash.com → lav Redis-database → kopier `UPSTASH_REDIS_REST_URL` og `UPSTASH_REDIS_REST_TOKEN` til `.env.local`.
+**Når deployet til Vercel/serverless:** in-memory virker ikke (hver invocation = ny instans). Brug en delt store — anbefalet: **Upstash Ratelimit** (gratis tier dækker MVP'er). To opsætnings-veje:
+
+1. **Vercel-vej:** Vercel → projekt → Storage → "Add Upstash". Env vars sættes automatisk.
+2. **Manuel vej:** Opret konto på upstash.com → lav Redis-database → kopier `UPSTASH_REDIS_REST_URL` og `UPSTASH_REDIS_REST_TOKEN` til `.env.local`.
 
 Body-size limit på ALLE endpoints der modtager input: 1MB default.
+
+## Webhooks — signatur og idempotency
+
+Webhooks er det letteste sted at lave finansielt bedrageri-som-service hvis man tager fejl. To regler:
+
+### 1. Verificér signaturen FØR du gør noget
+
+- **Stripe:** `stripe.webhooks.constructEvent(body, signature, secret)`
+- **Resend:** verificér `Resend-Signature`-headeren
+- **Supabase auth webhooks:** verificér authorization-header eller signed payloads
+
+**KRITISK gotcha (Next.js App Router + Stripe):** body SKAL være rå tekst, ikke parsed JSON. Det er den absolut mest almindelige Stripe-bug:
+
+```ts
+// app/api/webhooks/stripe/route.ts
+export async function POST(req: Request) {
+  const body = await req.text();                    // IKKE req.json()
+  const signature = req.headers.get('stripe-signature')!;
+  const event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+  // ... handle event
+}
+```
+
+Uden `req.text()` fejler signatur-verifikationen 100% af gangene og du ved ikke hvorfor.
+
+### 2. Idempotency
+
+Stripe (og andre) sender samme event op til 3 gange. Uden idempotency dobbelt-opretter du ordrer/credits.
+
+- Lav en `processed_webhooks`-tabel med unique constraint på `event_id`
+- Insert event_id først, gør derefter arbejdet — hvis insert fejler (duplikat), spring over
+- **Cleanup:** Stripe retrier i 3 dage. Du kan trygt slette `processed_webhooks`-rækker ældre end 30 dage (cron-job)
+
+## Logging af sensitive data
+
+- ALDRIG `console.log(req.body)` på endpoints der modtager tokens, betalingsdata eller user-objekter
+- ALDRIG log `Authorization`-headers
+- ALDRIG log hele user-objekter — de kan indeholde tokens og password hashes
+- Log specifikke felter du har brug for ("user signed up: " + userId), ikke "alt for at se hvad der sker"
+
+Vercel logs er ikke private — alle med dashboard-adgang kan læse dem.
+
+## Cron-endpoints
+
+Vercel Cron og lignende: endpoints der trigges af cron SKAL verificere `CRON_SECRET`. Ellers kan hvem som helst kalde `/api/cron/daily-emails` og bombe dit email-budget.
+
+Vercel-konventionen:
+- Sæt `CRON_SECRET` som env var i Vercel
+- Vercel Cron sender den automatisk i `Authorization: Bearer <CRON_SECRET>`-headeren
+- Verificér i route handleren:
+
+```ts
+export async function GET(req: Request) {
+  if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+  // ... cron-arbejde
+}
+```
+
+Til mentor-mandatet: 4 trin (tilføj env var i Vercel → Vercel Cron bruger den automatisk → verificér i handler → ellers kan endpoint misbruges af alle).
 
 ## Headers, CORS og injection
 
 - CORS: konkret origin, ALDRIG `*` i production
-- Sæt CSP, X-Frame-Options (DENY), Strict-Transport-Security i `next.config.js`
+- Sæt `X-Frame-Options: DENY` og `Strict-Transport-Security` i `next.config.js`
+- **CSP:** undgå at sætte en streng CSP fra start — den brækker Google Fonts, Stripe Checkout, billeder osv. Tilføj først lige før launch, og brug `report-only` mode først for at se hvad der bliver blokeret
+- Fjern `X-Powered-By` så stack-info ikke lækker
 - Brug Supabase-client / Drizzle ORM — ALDRIG template literals i raw SQL
 - Path traversal: validér file paths og brug `path.resolve()` + prefiks-tjek før læsning
 
 ## File uploads
 
 - Whitelist MIME-types — aldrig blacklist
-- Tjek faktisk fil-indhold, ikke kun extension
+- Tjek faktisk fil-indhold med `file-type`-biblioteket (ikke regex på extension)
 - Max-size limit på alle uploads
 - Gem ALDRIG uploads under web-root med eksekverbar adgang
 
 ## GØR / IKKE GØR
 
 ```ts
-// GØR
-const { data: { user } } = await supabase.auth.getUser();
-if (!user) return { error: 'unauthorized' };
-const parsed = TilbudSchema.parse(input);
+// GØR — almindelig CRUD via client + RLS
+const { data: opskrifter } = await supabase
+  .from('opskrifter')
+  .select('id, titel')
+  .limit(20);
+
+// GØR — server action når secret er nødvendigt
+'use server';
+export async function sendNyhedsbrev(userId: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'unauthorized' };
+  await resend.emails.send({ /* ... */ });
+}
 
 // IKKE GØR
 const { data: { session } } = await supabase.auth.getSession(); // ikke verificeret
-const tilbud = await supabase.from('tilbud').insert(input);     // ingen validering, ingen ownership-check
+const opskrifter = await supabase.from('opskrifter').select('*'); // ingen limit
 ```
 ````
 
@@ -141,8 +230,25 @@ const tilbud = await supabase.from('tilbud').insert(input);     // ingen valider
 
 Basale, opinionated retningslinjer for hvordan filer og mapper organiseres. Brug dem som standard, afvig hvor det giver mening.
 
-## Mappestruktur — feature-baseret
+## Mappestruktur — start fladt, refaktorer når det vokser
 
+For et MVP med 1-2 features er feature-baseret struktur overkill. **Start fladt** — refaktorer til feature-baseret når du rammer **3+ features eller en mappe har 8+ filer**.
+
+### Tidlig fase (1-2 features)
+```text
+app/
+  page.tsx
+  layout.tsx
+  actions.ts          ← server actions samlet
+components/           ← alle komponenter samlet
+lib/
+  supabase/
+    server.ts
+    client.ts
+  validation.ts       ← Zod-schemas
+```
+
+### Når du rammer 3+ features
 ```text
 app/
   tilbud/
@@ -160,14 +266,13 @@ lib/
   supabase/
     server.ts
     client.ts
-  validation.ts        ← Zod-schemas
 docs/
   regler/
     sikkerhed.md
     struktur.md
 ```
 
-Undgå en stor `components/`-bunke med alle komponenter blandet sammen. Hold feature-kode samlet.
+Undgå en stor `components/`-bunke når der er 30+ komponenter blandet sammen — det er signalet til at gå feature-baseret.
 
 ## Fil-størrelse og ansvar
 
@@ -224,7 +329,7 @@ Når Next.js scaffoldes via `create-next-app`, opretter scriptet en `.gitignore`
 ## Tegn på at det er tid til at refaktorere
 
 - Samme query gentages 4+ steder → træk ud i service
-- Component har 8+ props → splittes
+- Component har 8+ props OG du tænker stadig at tilføje flere → overvej at splitte eller komponere (forms har legitimt mange props)
 - Fil overstiger 300 linjer → splittes
 - Du er bange for at refaktorere → mangler tests
 ````

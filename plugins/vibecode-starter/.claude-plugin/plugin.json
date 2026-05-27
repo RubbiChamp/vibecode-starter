@@ -1,6 +1,6 @@
 {
   "name": "vibecode-starter",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Lægger en sikkerheds- og strukturkøreplan ind i dit Next.js + Supabase-projekt som Claude følger når den bygger. Én slash-command. Tre filer. Ingen skills, ingen spørgsmål.",
   "author": {
     "name": "Ruben Juncher",
